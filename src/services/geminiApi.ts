@@ -1,7 +1,7 @@
 import { WebsiteRequest, GeneratedWebsite, GeminiResponse } from '../types';
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_KEY = 'AIzaSyAUCQtoOYpvM5rZG8uPaODGb0SOFe9gVK0';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 export async function generateWebsite(request: WebsiteRequest): Promise<GeneratedWebsite> {
   if (!GEMINI_API_KEY) {
@@ -11,7 +11,7 @@ export async function generateWebsite(request: WebsiteRequest): Promise<Generate
   const prompt = createWebsitePrompt(request);
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
