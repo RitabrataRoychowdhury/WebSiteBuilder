@@ -89,21 +89,63 @@ Make sure the website is production-ready, visually appealing, and fully functio
 
 function parseGeneratedContent(content: string): GeneratedWebsite {
   try {
-    // Try to extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    // Strategy 1: Try to extract JSON from markdown code block
+    const jsonCodeBlockMatch = content.match(/```json\s*\n([\s\S]*?)\n```/);
+    if (jsonCodeBlockMatch) {
+      try {
+        const parsed = JSON.parse(jsonCodeBlockMatch[1]);
+        if (parsed.html && parsed.css && parsed.js) {
+          return {
+            html: parsed.html,
+            css: parsed.css,
+            js: parsed.js
+          };
+        }
+      } catch (e) {
+        // Continue to next strategy
+      }
+    }
+
+    // Strategy 2: Find first { and last } in the entire response
+    const firstBrace = content.indexOf('{');
+    const lastBrace = content.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        const jsonString = content.substring(firstBrace, lastBrace + 1);
+        const parsed = JSON.parse(jsonString);
+        if (parsed.html && parsed.css && parsed.js) {
+          return {
+            html: parsed.html,
+            css: parsed.css,
+            js: parsed.js
+          };
+        }
+      } catch (e) {
+        // Continue to next strategy
+      }
+    }
+
+    // Strategy 3: Try to extract any JSON object from the response
+    const jsonMatch = content.match(/\{[\s\S]*?\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        html: parsed.html || '',
-        css: parsed.css || '',
-        js: parsed.js || ''
-      };
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.html && parsed.css && parsed.js) {
+          return {
+            html: parsed.html,
+            css: parsed.css,
+            js: parsed.js
+          };
+        }
+      } catch (e) {
+        // Continue to fallback strategy
+      }
     }
     
-    // Fallback: try to extract code blocks
+    // Strategy 4: Fallback - extract individual code blocks
     const htmlMatch = content.match(/```html\n([\s\S]*?)\n```/);
     const cssMatch = content.match(/```css\n([\s\S]*?)\n```/);
-    const jsMatch = content.match(/```javascript\n([\s\S]*?)\n```/);
+    const jsMatch = content.match(/```javascript\n([\s\S]*?)\n```/) || content.match(/```js\n([\s\S]*?)\n```/);
     
     return {
       html: htmlMatch ? htmlMatch[1] : '',
@@ -112,6 +154,7 @@ function parseGeneratedContent(content: string): GeneratedWebsite {
     };
   } catch (error) {
     console.error('Error parsing generated content:', error);
+    console.error('Raw content:', content);
     throw new Error('Failed to parse generated website content');
   }
 }
