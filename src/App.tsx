@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { WebsiteRequest, GeneratedWebsite } from './types';
-import { generateWebsite } from './services/geminiApi';
-import WebsiteForm from './components/WebsiteForm';
-import CodePreview from './components/CodePreview';
+import { EnhancedWebsiteRequest, EnhancedGeneratedWebsite } from './types';
+import { generateEnhancedWebsite } from './services/enhancedGeminiApi';
+import EnhancedWebsiteForm from './components/EnhancedWebsiteForm';
+import EnhancedCodePreview from './components/EnhancedCodePreview';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
-import { Sparkles, Zap, Globe2, Palette, Code2, Rocket } from 'lucide-react';
+import { Sparkles, Zap, Globe2, Palette, Code2, Rocket, FileText, TestTube, Settings } from 'lucide-react';
 
 function App() {
-  const [generatedWebsite, setGeneratedWebsite] = useState<GeneratedWebsite | null>(null);
+  const [generatedWebsite, setGeneratedWebsite] = useState<EnhancedGeneratedWebsite | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerateWebsite = async (request: WebsiteRequest) => {
+  const handleGenerateWebsite = async (request: EnhancedWebsiteRequest) => {
     setIsGenerating(true);
     setError(null);
     
     try {
-      const website = await generateWebsite(request);
+      const website = await generateEnhancedWebsite(request);
       setGeneratedWebsite(website);
     } catch (err) {
       setError('Failed to generate website. Please try again.');
@@ -94,12 +94,12 @@ function App() {
               </motion.div>
               
               <motion.h2 
-                className="text-5xl font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                className="text-5xl font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                Build Beautiful Websites with AI
+                AI-Powered Web Development Platform
               </motion.h2>
               
               <motion.p 
@@ -108,8 +108,8 @@ function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                Describe your vision and let our AI create stunning, fully functional, 
-                responsive websites in seconds. No coding required.
+                Create stunning websites with integrated documentation and comprehensive testing. 
+                Our AI generates production-ready code with automated test suites and complete documentation.
               </motion.p>
             </div>
 
@@ -122,22 +122,28 @@ function App() {
             >
               {[
                 {
-                  icon: Palette,
-                  title: 'AI-Powered Generation',
-                  description: 'Advanced AI understands your requirements and creates custom websites with modern design patterns',
+                  icon: Code2,
+                  title: 'Complete Code Generation',
+                  description: 'Generate HTML, CSS, and JavaScript with modern frameworks, responsive design, and accessibility features',
                   gradient: 'from-purple-500 to-pink-500'
                 },
                 {
-                  icon: Zap,
-                  title: 'Instant Results',
-                  description: 'Get your complete website with HTML, CSS, and JavaScript in seconds with industry-grade code',
+                  icon: FileText,
+                  title: 'Automated Documentation',
+                  description: 'Generate comprehensive API docs, component guides, and user manuals in multiple formats',
                   gradient: 'from-blue-500 to-cyan-500'
+                },
+                {
+                  icon: TestTube,
+                  title: 'Comprehensive Testing',
+                  description: 'Automated unit, integration, E2E, performance, and accessibility tests with detailed reports',
+                  gradient: 'from-green-500 to-emerald-500'
                 },
                 {
                   icon: Rocket,
                   title: 'Production Ready',
-                  description: 'Generated websites are responsive, accessible, and ready to deploy with modern animations',
-                  gradient: 'from-green-500 to-emerald-500'
+                  description: 'Deploy-ready websites with CI/CD integration, performance optimization, and industry best practices',
+                  gradient: 'from-orange-500 to-red-500'
                 }
               ].map((feature, index) => {
                 const IconComponent = feature.icon;
@@ -176,7 +182,7 @@ function App() {
             )}
 
             {/* Website Form */}
-            <WebsiteForm onSubmit={handleGenerateWebsite} isGenerating={isGenerating} />
+            <EnhancedWebsiteForm onSubmit={handleGenerateWebsite} isGenerating={isGenerating} />
           </motion.div>
         ) : (
           <motion.div 
@@ -196,15 +202,15 @@ function App() {
                 <Sparkles className="w-10 h-10 text-white animate-pulse" />
               </div>
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Your Website is Ready!
+                Your Enhanced Website is Ready!
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Preview your website below, view the source code, or download the files.
+                Preview your website, explore the documentation, run tests, and download the complete project.
               </p>
             </motion.div>
 
             {/* Code Preview */}
-            <CodePreview website={generatedWebsite} />
+            <EnhancedCodePreview website={generatedWebsite} />
           </motion.div>
         )}
       </main>
@@ -213,7 +219,7 @@ function App() {
       <footer className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600 dark:text-gray-400">
-            <p>© 2025 AI Website Builder. Built with React, TypeScript, and Gemini AI.</p>
+            <p>© 2025 Enhanced AI Website Builder. Built with React, TypeScript, and Gemini AI.</p>
           </div>
         </div>
       </footer>
