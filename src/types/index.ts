@@ -102,3 +102,9 @@ export interface EnhancedGeneratedWebsite extends GeneratedWebsite {
     }>;
   };
 }
+
+// Re-export LLM types for convenience
+export * from './llm';
+
+// Re-export workflow types for convenience
+export * from './workflow';
