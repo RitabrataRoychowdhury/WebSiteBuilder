@@ -1,4 +1,7 @@
 import { WebsiteRequest, GeneratedWebsite, GeminiResponse } from '../types';
+import { ImageProcessorService } from './imageProcessorService';
+import { ImageProviderFactory } from './imageProviderFactory';
+import { ImageConfigManager } from './imageConfigManager';
 
 const GEMINI_API_KEY = 'AIzaSyAUCQtoOYpvM5rZG8uPaODGb0SOFe9gVK0';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -36,14 +39,17 @@ export async function generateWebsite(request: WebsiteRequest): Promise<Generate
     }
 
     const data: GeminiResponse = await response.json();
-    
+
     if (!data.candidates || data.candidates.length === 0) {
       throw new Error('No response generated from Gemini API');
     }
 
     const generatedContent = data.candidates[0].content.parts[0].text;
-    return parseGeneratedContent(generatedContent);
-    
+    const baseWebsite = parseGeneratedContent(generatedContent);
+
+    // Process images if enabled
+    return await processImagesIfEnabled(baseWebsite, request);
+
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     throw new Error('Failed to generate website. Please check your API key and try again.');
@@ -85,6 +91,60 @@ Please format your response as JSON with three properties:
 }
 
 Make sure the website is production-ready, visually appealing, and fully functional.`;
+}
+
+// Enhanced version that explicitly includes image processing
+export async function generateWebsiteWithImages(request: WebsiteRequest): Promise<GeneratedWebsite> {
+  const baseWebsite = await generateWebsite(request);
+  
+  // Force image processing regardless of config
+  const configManager = ImageConfigManager.getInstance();
+  
+  if (!configManager.hasValidUnsplashCredentials()) {
+    console.warn('Image processing requested but Unsplash credentials are missing');
+    return baseWebsite;
+  }
+
+  try {
+    const imageProvider = ImageProviderFactory.createProvider('unsplash', {
+      unsplash: configManager.getUnsplashConfig()
+    });
+    
+    const imageProcessor = new ImageProcessorService(
+      imageProvider,
+      configManager.getImageProcessingConfig()
+    );
+    
+    return await imageProcessor.processWebsite(baseWebsite, request);
+  } catch (error) {
+    console.error('Error processing images:', error);
+    return baseWebsite;
+  }
+}
+
+async function processImagesIfEnabled(website: GeneratedWebsite, request: WebsiteRequest): Promise<GeneratedWebsite> {
+  const configManager = ImageConfigManager.getInstance();
+  
+  if (!configManager.isImageProcessingEnabled()) {
+    return website;
+  }
+
+  try {
+    const imageProvider = ImageProviderFactory.createProvider('unsplash', {
+      unsplash: configManager.getUnsplashConfig()
+    });
+    
+    const imageProcessor = new ImageProcessorService(
+      imageProvider,
+      configManager.getImageProcessingConfig()
+    );
+    
+    return await imageProcessor.processWebsite(website, request);
+  } catch (error) {
+    console.error('Error processing images:', error);
+    // Return original website if image processing fails
+    return website;
+  }
 }
 
 function parseGeneratedContent(content: string): GeneratedWebsite {
@@ -141,12 +201,12 @@ function parseGeneratedContent(content: string): GeneratedWebsite {
         // Continue to fallback strategy
       }
     }
-    
+
     // Strategy 4: Fallback - extract individual code blocks
     const htmlMatch = content.match(/```html\n([\s\S]*?)\n```/);
     const cssMatch = content.match(/```css\n([\s\S]*?)\n```/);
     const jsMatch = content.match(/```javascript\n([\s\S]*?)\n```/) || content.match(/```js\n([\s\S]*?)\n```/);
-    
+
     return {
       html: htmlMatch ? htmlMatch[1] : '',
       css: cssMatch ? cssMatch[1] : '',
